@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daftar Harga Digiflazz</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+  <h1>Daftar Harga Produk Digiflazz</h1>
+  <table id="priceListTable">
+    <thead>
+      <tr>
+        <th>Nama Produk</th>
+        <th>Kategori</th>
+        <th>Brand</th>
+        <th>Harga</th>
+        <th>Deskripsi</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    async function fetchPriceList() {
+      try {
+        const response = await fetch("https://kyyraverse.my.id/price-list");
+        if (!response.ok) throw new Error("Gagal mengambil data dari API");
+
+        const data = await response.json();
+        const tableBody = document.getElementById("priceListTable").querySelector("tbody");
+
+        data.forEach(item => {
+          const row = document.createElement("tr");
+
+          row.innerHTML = `
+            <td>${item.product_name}</td>
+            <td>${item.category}</td>
+            <td>${item.brand}</td>
+            <td>${item.price}</td>
+            <td>${item.desc}</td>
+          `;
+
+          tableBody.appendChild(row);
+        });
+      } catch (error) {
+        console.error("Error fetching price list:", error);
+      }
+    }
+
+    // Panggil fungsi fetchPriceList saat halaman dimuat
+    window.onload = fetchPriceList;
+  </script>
+</body>
+</html>
