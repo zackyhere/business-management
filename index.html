@@ -29,7 +29,7 @@
 
     async function fetchBrands() {
       try {
-        const response = await fetch("http://localhost:3000/price-list");
+        const response = await fetch("https://d10b03cd68ab0b50de92abc01bfaa57e.serveo.net/price-list");
         if (!response.ok) throw new Error("Gagal mengambil data dari API");
 
         const data = await response.json();
