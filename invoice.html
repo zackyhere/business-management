@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    .invoice { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Invoice</h1>
+  <div id="invoiceDetails" class="invoice"></div>
+
+  <script>
+    // Ambil data dari localStorage
+    const selectedCategory = localStorage.getItem("selectedCategory");
+    const selectedBrand = localStorage.getItem("selectedBrand");
+    const selectedProduct = localStorage.getItem("selectedProduct");
+    const selectedPrice = localStorage.getItem("selectedPrice");
+
+    // Tampilkan data di halaman invoice
+    const invoiceDetails = document.getElementById("invoiceDetails");
+    invoiceDetails.innerHTML = `
+      <p>Kategori: ${selectedCategory}</p>
+      <p>Brand: ${selectedBrand}</p>
+      <p>Produk: ${selectedProduct}</p>
+      <p>Harga: ${selectedPrice}</p>
+    `;
+
+  </script>
+</body>
+</html>
