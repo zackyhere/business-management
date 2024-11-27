@@ -7,7 +7,7 @@
   <style>
     body { font-family: Arial, sans-serif; }
     .category-list, .brand-list, .brand-details { margin-top: 20px; }
-    .category-button, .brand-button, .product-button {
+    .category-button, .brand-button, .product-button, .submit-button {
       background-color: #4CAF50;
       color: white;
       padding: 8px 12px;
@@ -17,8 +17,25 @@
       text-decoration: none;
       margin-right: 5px;
     }
+    .product-button.selected {
+      border: 2px solid blue;
+    }
     .brand-item, .product-item { margin-bottom: 10px; }
     .brand-details { display: none; }
+    .form-container { margin-bottom: 20px; }
+    .form-container input {
+      padding: 8px;
+      font-size: 16px;
+      width: 100%;
+      box-sizing: border-box;
+      margin-bottom: 10px;
+    }
+    .form-container .error {
+      color: red;
+      font-size: 14px;
+      margin-top: -8px;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
@@ -28,24 +45,18 @@
   <div id="brandDetails" class="brand-details"></div>
 
   <script>
-    let brandData = []; // Menyimpan data API
-    let currentCategory = "Games"; // Kategori default
+    let brandData = [];
+    let currentCategory = "Games";
+    let selectedProduct = null;
 
     async function fetchBrands() {
       try {
-        const response = await fetch("https://7807379081dd4c9e58d5dee42a976975.serveo.net/price-list");
+        const response = await fetch("http://localhost:3000/price-list");
         if (!response.ok) throw new Error("Gagal mengambil data dari API");
 
-        const data = await response.json();
-        brandData = data; // Simpan data ke variabel global
-
-        // Kelompokkan kategori unik
-        const categories = [...new Set(data.map(item => item.category))];
-
-        // Tampilkan kategori
+        brandData = await response.json();
+        const categories = [...new Set(brandData.map(item => item.category))];
         displayCategories(categories);
-
-        // Tampilkan brand dari kategori default
         displayBrands(currentCategory);
       } catch (error) {
         console.error("Error fetching brands:", error);
@@ -54,21 +65,18 @@
 
     function displayCategories(categories) {
       const categoryList = document.getElementById("categoryList");
-      categoryList.innerHTML = ""; // Hapus elemen sebelumnya
-
+      categoryList.innerHTML = "";
       categories.forEach(category => {
         const categoryButton = document.createElement("button");
         categoryButton.className = "category-button";
         categoryButton.textContent = category;
-
-        // Klik kategori untuk memuat brand
         categoryButton.onclick = () => {
           currentCategory = category;
           displayBrands(category);
         };
-
         categoryList.appendChild(categoryButton);
       });
+      categoryList.style.display = "block";
     }
 
     function displayBrands(category) {
@@ -77,11 +85,10 @@
       const categoryList = document.getElementById("categoryList");
 
       document.getElementById("pageTitle").textContent = `Daftar Brand di ${category}`;
-      brandList.innerHTML = ""; // Hapus elemen sebelumnya
-      brandDetails.style.display = "none"; // Sembunyikan detail
-      categoryList.style.display = "block"; // Tampilkan kategori
+      brandList.innerHTML = "";
+      brandDetails.style.display = "none";
+      categoryList.style.display = "block";
 
-      // Filter data berdasarkan kategori yang dipilih
       const filteredBrands = brandData.filter(item => item.category === category);
       const displayedBrands = new Set();
 
@@ -91,8 +98,6 @@
 
         const brandItem = document.createElement("div");
         brandItem.className = "brand-item";
-
-        // Gunakan hash URL hanya untuk identifikasi brand
         const brandHash = item.brand.replace(/\s+/g, "-");
 
         brandItem.innerHTML = `
@@ -100,77 +105,103 @@
             ${item.brand}
           </a>
         `;
-
         brandList.appendChild(brandItem);
       });
 
-      brandList.style.display = "block"; // Tampilkan daftar brand
+      brandList.style.display = "block";
     }
 
     function handleBrandClick(brand) {
-      // Simpan brand saat ini di hash
       window.location.hash = brand.replace(/\s+/g, "-");
     }
+
+    window.handleBrandClick = handleBrandClick;
 
     function displayBrandDetails(brand) {
       const brandDetails = document.getElementById("brandDetails");
       const categoryList = document.getElementById("categoryList");
       const brandList = document.getElementById("brandList");
-
       document.getElementById("pageTitle").textContent = `Produk dari ${brand}`;
 
-      // Sembunyikan kategori dan daftar brand
       categoryList.style.display = "none";
       brandList.style.display = "none";
 
-      // Filter produk berdasarkan brand dan kategori saat ini
-      const products = brandData.filter(item => {
-        if (brandData.filter(x => x.brand === brand).length > 1) {
-          // Jika ada bentrok, filter berdasarkan kategori saat ini dan brand
-          return item.category === currentCategory && item.brand === brand;
-        } else {
-          // Jika tidak ada bentrok, cukup filter berdasarkan brand
-          return item.brand === brand;
-        }
-      });
+      const products = brandData.filter(item => item.category === currentCategory && item.brand === brand);
 
-      brandDetails.innerHTML = products
-        .map(item => `
-          <div class="product-item">
-            <button class="product-button" onclick="redirectToInvoice('${item.brand}', '${item.product_name}', '${item.kyyraprice}')">
-              ${item.product_name} - ${formatRupiah(item.kyyraprice)}
-            </button>
-          </div>
-        `)
-        .join("");
+      brandDetails.innerHTML = `
+        <div class="form-container">
+          <label for="customerNo">Masukkan Nomor Pelanggan:</label>
+          <input type="text" id="customerNo" placeholder="Nomor Pelanggan">
+          <div id="error" class="error"></div>
+        </div>
+        ${products
+          .map(item => `
+            <div class="product-item">
+              <button class="product-button" onclick="selectProduct(this, '${item.buyer_sku_code}', '${item.product_name}', '${item.kyyraprice}')">
+                ${item.product_name} - Rp${parseInt(item.kyyraprice).toLocaleString("id-ID")}
+              </button>
+            </div>
+          `)
+          .join("")}
+        <button class="submit-button" onclick="submitTransaction()">Submit</button>
+      `;
 
-      brandDetails.style.display = "block"; // Tampilkan detail produk
+      brandDetails.style.display = "block";
     }
 
-    function formatRupiah(angka) {
-      // Fungsi untuk memformat angka menjadi Rupiah
-      return `Rp${parseInt(angka).toLocaleString("id-ID")}`;
+    function selectProduct(button, sku, productName, price) {
+      document.querySelectorAll(".product-button").forEach(btn => btn.classList.remove("selected"));
+      button.classList.add("selected");
+      selectedProduct = { sku, productName, price };
     }
 
-    function redirectToInvoice(brand, product, price) {
-      // Simpan data di localStorage
-      localStorage.setItem("selectedBrand", brand);
-      localStorage.setItem("selectedProduct", product);
-      localStorage.setItem("selectedPrice", formatRupiah(price));
+    async function submitTransaction() {
+      const customerNo = document.getElementById("customerNo").value;
+      const error = document.getElementById("error");
 
-      // Redirect ke invoice.html
-      window.location.href = "invoice.html";
+      if (!customerNo) {
+        error.textContent = "Silahkan isi data akun dahulu";
+        document.getElementById("customerNo").focus();
+        return;
+      }
+
+      if (!selectedProduct) {
+        alert("Harap pilih produk terlebih dahulu!");
+        return;
+      }
+
+      error.textContent = "";
+      const requestData = {
+        buyer_sku_code: selectedProduct.sku,
+        customer_no: customerNo
+      };
+
+      try {
+        const response = await fetch("http://localhost:3000/admin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestData)
+        });
+
+        if (!response.ok) throw new Error("Gagal mengirim data ke server");
+
+        const responseData = await response.json();
+        localStorage.setItem("transactionResponse", JSON.stringify(responseData));
+        window.location.href = "invoice.html";
+      } catch (error) {
+        alert("Terjadi kesalahan: " + error.message);
+      }
     }
 
     function handleHashChange() {
       const brand = window.location.hash.slice(1).replace(/-/g, " ");
+      const categoryList = document.getElementById("categoryList");
+
       if (!brand) {
-        // Jika hash kosong, kembali ke daftar brand
+        categoryList.style.display = "block";
         displayBrands(currentCategory);
         return;
       }
-
-      // Tampilkan detail produk berdasarkan brand
       displayBrandDetails(brand);
     }
 
