@@ -1,34 +1,92 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Invoice</title>
   <style>
-    body { font-family: Arial, sans-serif; }
-    .invoice { margin-top: 20px; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f9f9f9;
+    }
+    .invoice-container {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    .invoice-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .invoice-header h1 {
+      margin: 0;
+      color: #333;
+    }
+    .invoice-details {
+      margin-bottom: 20px;
+    }
+    .invoice-details p {
+      margin: 8px 0;
+    }
+    .btn {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      text-align: center;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background-color: #45a049;
+    }
   </style>
 </head>
 <body>
-  <h1>Invoice</h1>
-  <div id="invoiceDetails" class="invoice"></div>
+
+  <div class="invoice-container">
+    <div class="invoice-header">
+      <h1>Invoice Transaksi</h1>
+      <p>Terima kasih telah melakukan transaksi</p>
+    </div>
+
+    <div class="invoice-details">
+      <p><strong>Ref ID:</strong> <span id="refId"></span></p>
+      <p><strong>SKU Produk:</strong> <span id="buyerSkuCode"></span></p>
+      <p><strong>Nomor Pelanggan:</strong> <span id="customerNo"></span></p>
+      <p><strong>Nama Produk:</strong> <span id="productName"></span></p>
+      <p><strong>Harga Produk:</strong> <span id="price"></span></p>
+      <p><strong>Harga Kyyra:</strong> <span id="kyyraPrice"></span></p>
+    </div>
+
+    <button class="btn" onclick="window.location.href='/';">Kembali ke Beranda</button>
+  </div>
 
   <script>
-    // Ambil data dari localStorage
-    const selectedCategory = localStorage.getItem("selectedCategory");
-    const selectedBrand = localStorage.getItem("selectedBrand");
-    const selectedProduct = localStorage.getItem("selectedProduct");
-    const selectedPrice = localStorage.getItem("selectedPrice");
+    // Mengambil data dari localStorage
+    const transactionResponse = JSON.parse(localStorage.getItem("transactionResponse"));
 
-    // Tampilkan data di halaman invoice
-    const invoiceDetails = document.getElementById("invoiceDetails");
-    invoiceDetails.innerHTML = `
-      <p>Kategori: ${selectedCategory}</p>
-      <p>Brand: ${selectedBrand}</p>
-      <p>Produk: ${selectedProduct}</p>
-      <p>Harga: ${selectedPrice}</p>
-    `;
-
+    if (transactionResponse) {
+      const data = transactionResponse;
+      
+      // Menampilkan data pada halaman
+      document.getElementById("refId").textContent = data.ref_id;
+      document.getElementById("buyerSkuCode").textContent = data.buyer_sku_code;
+      document.getElementById("customerNo").textContent = data.customer_no;
+      document.getElementById("productName").textContent = data.product_name;
+      document.getElementById("price").textContent = `Rp ${data.price.toLocaleString()}`;
+      document.getElementById("kyyraPrice").textContent = `Rp ${data.kyyraprice.toLocaleString()}`;
+    } else {
+      alert("Data transaksi tidak ditemukan.");
+      window.location.href = "/"; // Kembali ke halaman beranda jika data tidak ada
+    }
   </script>
+
 </body>
 </html>
