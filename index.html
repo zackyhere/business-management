@@ -45,13 +45,28 @@
   <div id="brandDetails" class="brand-details"></div>
 
   <script>
+    let API_BASE_URL = ""; // Variabel global untuk endpoint API
     let brandData = [];
     let currentCategory = "Games";
     let selectedProduct = null;
 
+    async function fetchEndpoint() {
+      try {
+        // Ambil nilai endpoint dari domain JSON
+        const response = await fetch("https://kyyragoods.vercel.app");
+        if (!response.ok) throw new Error("Gagal mengambil endpoint dari domain JSON");
+
+        const data = await response.json();
+        API_BASE_URL = data.domains[0].endpoint; // Menyimpan endpoint ke variabel global
+        fetchBrands(); // Lanjutkan dengan mengambil data brand
+      } catch (error) {
+        console.error("Error fetching endpoint:", error);
+      }
+    }
+
     async function fetchBrands() {
       try {
-        const response = await fetch("http://localhost:3000/price-list");
+        const response = await fetch(`${API_BASE_URL}/price-list`); // Gunakan endpoint dinamis
         if (!response.ok) throw new Error("Gagal mengambil data dari API");
 
         brandData = await response.json();
@@ -177,7 +192,7 @@
       };
 
       try {
-        const response = await fetch("http://localhost:3000/admin", {
+        const response = await fetch(`${API_BASE_URL}/admin`, { // Gunakan endpoint dinamis
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(requestData)
@@ -206,7 +221,7 @@
     }
 
     window.onload = () => {
-      fetchBrands();
+      fetchEndpoint(); // Ambil endpoint dan jalankan fetchBrands setelahnya
       window.addEventListener("hashchange", handleHashChange);
     };
   </script>
